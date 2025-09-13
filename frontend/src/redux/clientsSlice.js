@@ -1,25 +1,33 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../config/axios";
 
-
-export const fetchClients = createAsyncThunk("clients/fetchClients", async (_, { rejectWithValue }) => {
-  try {
-    const response = await api.get("/clients");
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(error.response?.data || { message: "Failed to fetch clients" });
+// Fetch all clients
+export const fetchClients = createAsyncThunk(
+  "clients/fetchClients",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/clients");
+      const data = response.data;
+      // Ensure it's always an array
+      return Array.isArray(data) ? data : data.clients || [];
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Failed to fetch clients" });
+    }
   }
-});
+);
 
-
-export const addClient = createAsyncThunk("clients/addClient", async (clientData, { rejectWithValue }) => {
-  try {
-    const response = await api.post("/clients", clientData);
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(error.response.data);
+// Add a new client
+export const addClient = createAsyncThunk(
+  "clients/addClient",
+  async (clientData, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/clients", clientData);
+      return response.data; // single client object
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Failed to add client" });
+    }
   }
-});
+);
 
 // Update client status
 export const updateClientStatus = createAsyncThunk(
@@ -27,9 +35,9 @@ export const updateClientStatus = createAsyncThunk(
   async ({ id, status }, { rejectWithValue }) => {
     try {
       const response = await api.put(`/clients/${id}/status`, { status });
-      return response.data;
+      return response.data; // single client object
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to update status");
+      return rejectWithValue(error.response?.data || { message: "Failed to update status" });
     }
   }
 );
@@ -37,10 +45,10 @@ export const updateClientStatus = createAsyncThunk(
 const clientsSlice = createSlice({
   name: "clients",
   initialState: {
-    list: [],
+    list: [], // always array
     loading: false,
     error: null,
-    currentClient: null
+    currentClient: null,
   },
   reducers: {
     setCurrentClient: (state, action) => {
@@ -49,12 +57,14 @@ const clientsSlice = createSlice({
     clearCurrentClient: (state) => {
       state.currentClient = null;
     },
-    updateClients: (state, action) => { 
-      state.list = action.payload;
-    }
+    updateClients: (state, action) => {
+      // manually replace full list
+      state.list = Array.isArray(action.payload) ? action.payload : [];
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Fetch clients
       .addCase(fetchClients.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -67,28 +77,34 @@ const clientsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      // Add client
       .addCase(addClient.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addClient.fulfilled, (state, action) => {
         state.loading = false;
-        state.list.push(action.payload);
+        state.list = [action.payload, ...state.list];
       })
       .addCase(addClient.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+
+      // Update client status
       .addCase(updateClientStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateClientStatus.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = state.list.map(client =>
+        state.list = state.list.map((client) =>
           client._id === action.payload._id ? action.payload : client
         );
-        state.currentClient = null;
+        if (state.currentClient?._id === action.payload._id) {
+          state.currentClient = null;
+        }
       })
       .addCase(updateClientStatus.rejected, (state, action) => {
         state.loading = false;
@@ -97,5 +113,5 @@ const clientsSlice = createSlice({
   },
 });
 
-export const { setCurrentClient, clearCurrentClient, updateClients } = clientsSlice.actions;  // ✅ Export updateClients
+export const { setCurrentClient, clearCurrentClient, updateClients } = clientsSlice.actions;
 export default clientsSlice.reducer;

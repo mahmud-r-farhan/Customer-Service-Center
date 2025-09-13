@@ -1,80 +1,279 @@
-import { useSelector } from "react-redux"
-import { motion } from "framer-motion"
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaRegClock,
+  FaUsers,
+  FaCheckCircle,
+  FaArrowRight,
+} from "react-icons/fa";
 
 function Serial() {
-  const clients = useSelector((state) => state.clients.list)
-  const nextClients = clients.filter((client) => client.status === "upcoming")
-  const completedClients = clients.filter((client) => client.status === "done")
+  const dispatch = useDispatch();
+  const clients = useSelector((state) => state.clients.list);
+  const nextClients = clients.filter((client) => client.status === "upcoming");
+  const completedClients = clients.filter((client) => client.status === "done");
+
+  const currentClient = nextClients[0];
+  const upcomingClients = nextClients.slice(1);
+
+  
+  useEffect(() => {
+    dispatch({ type: "ws/connect" });
+    return () => {
+      dispatch({ type: "ws/disconnect" });
+    };
+  }, [dispatch]);
 
   return (
-    <div className="space-y-8">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 rounded-lg shadow-2xl">
-        <h1 className="text-6xl font-bold text-white text-center mb-4">Now Serving</h1>
-        {nextClients[0] ? (
+    <div className="min-h-screen ">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 lg:p-8"
+      >
+        {/* Header Stats */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
+        >
+          {/* In Queue */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-white/20">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <FaUsers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">In Queue</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{nextClients.length}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Completed */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-white/20">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <FaCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedClients.length}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Est. Wait */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-white/20">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                <FaRegClock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Est. Wait</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {upcomingClients.length * 5}min
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Now Serving Section */}
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="relative overflow-hidden"
+        >
+          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 sm:p-12 rounded-2xl shadow-2xl border border-white/20">
+            <motion.div
+              animate={{
+                background: [
+                  "linear-gradient(45deg, #4f46e5, #7c3aed, #ec4899)",
+                  "linear-gradient(45deg, #7c3aed, #ec4899, #4f46e5)",
+                  "linear-gradient(45deg, #ec4899, #4f46e5, #7c3aed)",
+                ],
+              }}
+              transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
+              className="absolute inset-0 opacity-20"
+            />
+            <div className="relative z-10">
+              <motion.h1
+                initial={{ y: 20 }}
+                animate={{ y: 0 }}
+                className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white text-center mb-8 tracking-tight"
+              >
+                Now Serving
+              </motion.h1>
+
+              <AnimatePresence mode="wait">
+                {currentClient ? (
+                  <motion.div
+                    key={currentClient._id}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                    transition={{ type: "spring", damping: 15 }}
+                    className="text-center"
+                  >
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.05, 1],
+                        textShadow: [
+                          "0 0 20px rgba(255,255,255,0.5)",
+                          "0 0 40px rgba(255,255,255,0.8)",
+                          "0 0 20px rgba(255,255,255,0.5)",
+                        ],
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                      className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 border border-white/30"
+                    >
+                      <h2 className="text-7xl sm:text-8xl lg:text-9xl font-bold text-white mb-4 font-mono tracking-wider">
+                        {currentClient.token}
+                      </h2>
+                      <p className="text-2xl sm:text-3xl lg:text-4xl text-white/90 font-medium">
+                        {currentClient.name}
+                      </p>
+                    </motion.div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center"
+                  >
+                    <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-12 border border-white/30">
+                      <FaRegClock className="h-16 w-16 text-white/60 mx-auto mb-4" />
+                      <p className="text-3xl sm:text-4xl text-white font-medium">Queue is Empty</p>
+                      <p className="text-lg text-white/80 mt-2">Ready for the next client</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Queue Sections */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Next in Line */}
           <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
-            className="text-center"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20"
           >
-            <h2 className="text-8xl font-bold text-white mb-2">{nextClients[0].token}</h2>
-            <p className="text-3xl text-white opacity-90">{nextClients[0].name}</p>
-          </motion.div>
-        ) : (
-          <p className="text-4xl text-white text-center">No clients waiting</p>
-        )}
-      </div>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <FaArrowRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Next in Line ({upcomingClients.length})
+              </h2>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-6 rounded-lg shadow-lg"
-        >
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">Next in Line</h2>
-          <div className="space-y-4">
-            {nextClients.slice(1).map((client, index) => (
-              <motion.div
-                key={client.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg"
-              >
-                <div>
-                  <span className="text-2xl font-bold text-indigo-600">{client.token}</span>
-                  <p className="text-gray-600">{client.name}</p>
+            <div className="space-y-3 overflow-y-auto max-h-96 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+              <AnimatePresence>
+                {upcomingClients.map((client, index) => (
+                  <motion.div
+                    key={client._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    className="group relative"
+                  >
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-xl border border-blue-100 dark:border-gray-600 transition-all duration-200 group-hover:shadow-md">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white font-bold text-xl rounded-xl font-mono">
+                          {client.token}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white text-lg">
+                            {client.name}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Position {index + 1} • ~{(index + 1) * 5} min wait
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center text-gray-400">
+                        <FaRegClock className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {upcomingClients.length === 0 && (
+                <div className="text-center py-12">
+                  <FaUsers className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">No clients in queue</p>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+              )}
+            </div>
+          </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-6 rounded-lg shadow-lg"
-        >
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">Recently Completed</h2>
-          <div className="space-y-2">
-            {completedClients.slice(0, 5).map((client, index) => (
-              <motion.div
-                key={client.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex justify-between items-center p-3 bg-green-50 rounded-lg"
-              >
-                <span className="text-xl text-green-600">{client.token}</span>
-                <span className="text-gray-600">{client.name}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+          {/* Recently Completed */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/20"
+          >
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <FaCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Recently Completed
+              </h2>
+            </div>
+
+            <div className="space-y-3 overflow-y-auto max-h-96 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+              <AnimatePresence>
+                {completedClients.slice(0, 10).map((client, index) => (
+                  <motion.div
+                    key={client._id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    className="group"
+                  >
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl border border-green-100 dark:border-green-800 transition-all duration-200 group-hover:shadow-md">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center justify-center w-10 h-10 bg-green-600 text-white font-bold rounded-lg font-mono">
+                          {client.token}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {client.name}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Completed
+                          </p>
+                        </div>
+                      </div>
+                      <FaCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {completedClients.length === 0 && (
+                <div className="text-center py-12">
+                  <FaCheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">No completed services yet</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
     </div>
-  )
+  );
 }
 
-export default Serial
-
+export default Serial;

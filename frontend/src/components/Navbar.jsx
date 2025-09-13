@@ -17,26 +17,26 @@ function Navbar() {
   ];
 
   return (
-    <nav className="bg-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between h-20">
-          <div className="flex">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <img className="h-10 w-auto" src={logo} alt="Logo" />
+    <nav className="bg-white dark:bg-gray-800 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 sm:h-20 items-center">
+          <div className="flex items-center">
+            <Link to="/" className="flex-shrink-0">
+              <img className="h-8 sm:h-10 w-auto" src={logo} alt="Logo" />
             </Link>
-
             {isAuthenticated && (
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-10">
+              <div className="hidden sm:ml-8 sm:flex sm:space-x-8 lg:space-x-10">
                 {navItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className="relative inline-flex items-center px-2 pt-2 text-gray-900 text-lg"
+                    className="relative flex items-center text-sm lg:text-base text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                   >
                     {location.pathname === item.path && (
                       <motion.div
                         layoutId="underline"
-                        className="absolute left-0 right-0 bottom-0 h-1 bg-indigo-600"
+                        className="absolute -bottom-1 left-0 right-0 h-1 bg-indigo-600 rounded-full"
+                        initial={false}
                       />
                     )}
                     {item.label}
@@ -47,26 +47,26 @@ function Navbar() {
           </div>
 
           {isAuthenticated ? (
-            <div className="flex items-center">
-              <span className="text-gray-700 text-lg font-medium mr-6">{user?.name}</span>
+            <div className="flex items-center space-x-4 sm:space-x-6">
+              <span className="text-gray-700 dark:text-gray-300 text-sm lg:text-base font-medium hidden sm:block">{user?.name}</span>
               <button
                 onClick={() => dispatch(logout())}
-                className="bg-red-500 text-white px-5 py-2.5 rounded-lg text-lg hover:bg-red-600 transition-colors"
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm lg:text-base hover:bg-red-700 transition-colors"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4 sm:space-x-6">
               <Link
                 to="/login"
-                className="text-gray-700 text-lg hover:text-gray-900 transition-colors"
+                className="text-gray-700 dark:text-gray-300 text-sm lg:text-base hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-lg hover:bg-indigo-700 transition-colors"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm lg:text-base hover:bg-indigo-700 transition-colors"
               >
                 Register
               </Link>

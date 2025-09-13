@@ -1,43 +1,36 @@
-import { useEffect } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { toast } from "sonner"
-import { fetchClients, updateClientStatus, setCurrentClient, clearCurrentClient } from "../redux/clientsSlice"
-import { Spinner } from "../components/Spinner"
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import { fetchClients, updateClientStatus, setCurrentClient, clearCurrentClient } from "../redux/clientsSlice";
+import { Spinner } from "../components/Spinner";
+import { motion } from "framer-motion";
 
 function Dashboard() {
-  const dispatch = useDispatch()
-  const { list: clients, loading, error, currentClient } = useSelector((state) => state.clients)
+  const dispatch = useDispatch();
+  const { list: clients, loading, error, currentClient } = useSelector((state) => state.clients);
 
   useEffect(() => {
-    dispatch(fetchClients())
-  }, [dispatch])
+    dispatch(fetchClients());
+  }, [dispatch]);
 
   const handleConsult = (client) => {
-    dispatch(setCurrentClient(client))
-    toast.success(`Started consultation with ${client.name}`)
-  }
+    dispatch(setCurrentClient(client));
+    toast.success(`Started consultation with ${client.name}`);
+  };
 
   const handleDone = () => {
     if (currentClient) {
-      dispatch(updateClientStatus({ id: currentClient._id, status: "done" }))  // Changed from id to _id
+      dispatch(updateClientStatus({ id: currentClient._id, status: "done" }))
         .unwrap()
         .then(() => {
-          toast.success("Client consultation completed")
-          dispatch(clearCurrentClient())
+          toast.success("Client consultation completed");
+          dispatch(clearCurrentClient());
         })
-        .catch((error) => {
-          toast.error(error.message || "Failed to update client status")
-        })
+        .catch((error) => toast.error(error.message || "Failed to update client status"));
     }
-  }
+  };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Spinner />
-      </div>
-    )
-  }
+  if (loading) return <div className="flex justify-center items-center h-64"><Spinner /></div>;
 
   if (error) {
     return (
@@ -45,35 +38,43 @@ function Dashboard() {
         <p>Error: {error.message}</p>
         <button
           onClick={() => dispatch(fetchClients())}
-          className="mt-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+          className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
         >
           Retry
         </button>
       </div>
-    )
+    );
   }
 
-  const upcomingClients = clients.filter((client) => client.status === "upcoming") || []
+  const upcomingClients = clients.filter((client) => client.status === "upcoming");
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Upcoming Clients</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8 p-4 sm:p-6 lg:p-8"
+    >
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
+        >
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Upcoming Clients</h2>
           {upcomingClients.length === 0 ? (
-            <p className="text-gray-500 text-center">No upcoming clients</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center">No upcoming clients</p>
           ) : (
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-gray-200 dark:divide-gray-700 overflow-y-auto max-h-96">
               {upcomingClients.map((client) => (
                 <li key={client._id} className="py-4 flex justify-between items-center">
                   <div>
-                    <p className="font-medium text-gray-800">{client.name}</p>
-                    <p className="text-sm text-gray-500">Token: {client.token}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{client.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Token: {client.token}</p>
                   </div>
                   <button
                     onClick={() => handleConsult(client)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                   >
                     Consult
                   </button>
@@ -81,31 +82,35 @@ function Dashboard() {
               ))}
             </ul>
           )}
-        </div>
+        </motion.div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Current Consultation</h2>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
+        >
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Current Consultation</h2>
           {currentClient ? (
             <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-md">
-                <p className="text-gray-700"><span className="font-semibold">Name:</span> {currentClient.name}</p>
-                <p className="text-gray-700"><span className="font-semibold">Number:</span> {currentClient.number}</p>
-                <p className="text-gray-700"><span className="font-semibold">Token:</span> {currentClient.token}</p>
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md space-y-2">
+                <p className="text-gray-700 dark:text-gray-300"><span className="font-semibold">Name:</span> {currentClient.name}</p>
+                <p className="text-gray-700 dark:text-gray-300"><span className="font-semibold">Number:</span> {currentClient.number}</p>
+                <p className="text-gray-700 dark:text-gray-300"><span className="font-semibold">Token:</span> {currentClient.token}</p>
               </div>
               <button
                 onClick={handleDone}
-                className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+                className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors"
               >
                 Complete Consultation
               </button>
             </div>
           ) : (
-            <p className="text-center text-gray-500">No active consultation</p>
+            <p className="text-center text-gray-500 dark:text-gray-400">No active consultation</p>
           )}
-        </div>
+        </motion.div>
       </div>
-    </div>
-  )
+    </motion.div>
+  );
 }
 
-export default Dashboard
+export default Dashboard;

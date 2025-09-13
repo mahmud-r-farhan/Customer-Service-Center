@@ -4,21 +4,43 @@ let socket = null;
 
 export const websocketMiddleware = (store) => (next) => (action) => {
   if (action.type === "ws/connect") {
-    // Connect to WebSocket server
-  
+    if (socket && socket.readyState === WebSocket.OPEN) return next(action);
+
     socket = new WebSocket(import.meta.env.VITE_WS_URL);
 
+    socket.onopen = () => {
+      console.log('WS connected');
+    };
+
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      switch (data.type) {
-        case "CLIENTS_UPDATE":
-          store.dispatch(updateClients(data.payload));
-          break;
-        case "CLIENT_ASSIGNED":
-          store.dispatch(setCurrentClient(data.payload));
-          break;
-        // Add more cases as needed
+      try {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+          case "CLIENTS_UPDATE":
+            store.dispatch(updateClients(data.payload));
+            break;
+          case "CLIENT_ASSIGNED":
+            store.dispatch(setCurrentClient(data.payload));
+            break;
+          case "CLIENT_STATUS_UPDATED":
+            // Can handle specific updates
+            store.dispatch(updateClients(data.payload));
+            break;
+          default:
+            break;
+        }
+      } catch (error) {
+        console.error('WS message error:', error);
       }
+    };
+
+    socket.onclose = () => {
+      console.log('WS disconnected');
+      socket = null;
+    };
+
+    socket.onerror = (error) => {
+      console.error('WS error:', error);
     };
   }
 

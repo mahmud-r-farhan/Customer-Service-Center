@@ -12,3 +12,12 @@
   --border: 214.3 31.8% 91.4%;
   --radius: 0.5rem;
 }
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 0 0% 100%;
+}

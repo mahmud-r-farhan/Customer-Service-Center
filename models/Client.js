@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const clientSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -6,7 +6,6 @@ const clientSchema = new mongoose.Schema({
   token: { type: String, required: true, unique: true },
   status: { type: String, enum: ["upcoming", "done"], default: "upcoming" },
   createdAt: { type: Date, default: Date.now },
-})
+});
 
-module.exports = mongoose.model("Client", clientSchema)
-
+module.exports = mongoose.model("Client", clientSchema);
