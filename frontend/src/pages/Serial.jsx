@@ -16,7 +16,11 @@ function Serial() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const now = new Date();
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const nextClients = clients.filter((client) => client.status === "upcoming");
+
+  // Sort clients by createdAt in ascending order to ensure last registered is last
+  const nextClients = clients
+    .filter((client) => client.status === "upcoming")
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   const completedClients = clients.filter(
     (client) =>
       client.status === "done" && new Date(client.updatedAt) > last24h
@@ -56,12 +60,12 @@ function Serial() {
           >
             {isFullScreen ? (
               <>
-                <FiMaximize className="w-5 h-5" />
+                <FiMinimize className="w-5 h-5" />
                 <span>Exit Full Screen</span>
               </>
             ) : (
               <>
-                < FiMinimize className="w-5 h-5" />
+                <FiMaximize className="w-5 h-5" />
                 <span>Full Screen</span>
               </>
             )}
@@ -123,15 +127,14 @@ function Serial() {
           <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 sm:p-12 rounded-2xl shadow-2xl border ">
             <motion.div
               animate={{
-                background: 
-                [
+                background: [
                   "linear-gradient(45deg, #3730a3, #7c3aed, #ec4899)",
                   "linear-gradient(45deg, #7c3aed, #ec4899, #3730a3)",
-                  "linear-gradient(45deg, #ec4899, #3730a3, #7c3aed)"
+                  "linear-gradient(45deg, #ec4899, #3730a3, #7c3aed)",
                 ],
               }}
               transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-              className="absolute inset-0 rounded-2xl blur-smr "
+              className="absolute inset-0 rounded-2xl blur-sm"
             />
             <div className="relative z-10">
               <motion.h1

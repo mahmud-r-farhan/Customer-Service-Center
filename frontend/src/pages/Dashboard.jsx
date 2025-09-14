@@ -63,7 +63,12 @@ const Dashboard = React.memo(() => {
     toast.success("Exported to Excel");
   }, 1000), [clients]);
 
-  const upcomingClients = useMemo(() => clients.filter((client) => client.status === "upcoming"), [clients]);
+  const upcomingClients = useMemo(() =>
+    clients
+      .filter((client) => client.status === "upcoming")
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
+    [clients]
+  );
   const completedToday = useMemo(() => {
     const last24h = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
     return clients.filter(
@@ -170,8 +175,7 @@ const Dashboard = React.memo(() => {
                     >
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold"
-                          >
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
                             {client.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -223,8 +227,7 @@ const Dashboard = React.memo(() => {
               >
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold"
-                    >
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
                       {currentClient.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
