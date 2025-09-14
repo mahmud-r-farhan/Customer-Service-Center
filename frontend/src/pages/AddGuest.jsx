@@ -6,6 +6,30 @@ import { addClient } from "../redux/clientsSlice";
 import { FiMaximize, FiMinimize } from "react-icons/fi";
 import logo from "../assets/logo.png";
 
+class TokenGenerator {
+  constructor() {
+    this.letter = 'A';
+    this.number = 0;
+  }
+
+  generateToken() {
+    const formattedNumber = this.number.toString().padStart(2, '0');
+    const token = `${this.letter}${formattedNumber}`;
+    this.number++;
+    if (this.number > 99) {
+      this.number = 0;
+      this.letter = String.fromCharCode(this.letter.charCodeAt(0) + 1);
+      if (this.letter > 'Z') {
+        this.letter = 'A'; // Reset to 'A' for cycling
+      }
+    }
+    return token;
+  }
+}
+
+// Instantiate token generator outside component to persist state
+const tokenGenerator = new TokenGenerator();
+
 function AddGuest() {
   const dispatch = useDispatch();
   const [number, setNumber] = useState("");
@@ -14,15 +38,13 @@ function AddGuest() {
   const [token, setToken] = useState("");
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  const generateToken = () => Math.random().toString(36).substr(2, 6).toUpperCase();
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!number || !name) {
       toast.error("Please fill in all fields");
       return;
     }
-    const newToken = generateToken();
+    const newToken = tokenGenerator.generateToken();
     dispatch(addClient({ number, name, token: newToken }))
       .unwrap()
       .then(() => {

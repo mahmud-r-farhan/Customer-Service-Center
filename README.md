@@ -14,6 +14,10 @@ The Customer Service Center is a web-based application designed to streamline cu
 -   **Real-time Updates**: Uses WebSockets to provide live updates to all connected clients.
 -   **User Authentication**: Secure login and registration for agents with JWT-based authentication.
 
+![CS Center banner](https://customer-service-center.vercel.app/Gemini_Generated_Image_fxeinjfxeinjfxei.png)
+
+![CS Center banner](https://customer-service-center.vercel.app/banner.png)
+
 ## Technology Stack
 
 ### Backend (cs-center)
