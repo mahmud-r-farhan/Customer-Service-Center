@@ -48,7 +48,7 @@ function Navbar() {
 
           {isAuthenticated ? (
             <div className="flex items-center space-x-4 sm:space-x-6">
-              <span className="text-gray-700 dark:text-gray-300 text-sm lg:text-base font-medium hidden sm:block">{user?.name}</span>
+              <span className=" dark:text-purple-400 text-sm lg:text-base font-medium hidden sm:block" title="User Name">{user?.name}</span>
               <button
                 onClick={() => dispatch(logout())}
                 className="bg-red-600 text-white px-4 py-2 rounded-md text-sm lg:text-base hover:bg-red-700 transition-colors"

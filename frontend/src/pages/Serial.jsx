@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchClients } from "../redux/clientsSlice";
@@ -8,21 +8,23 @@ import {
   FaCheckCircle,
   FaArrowRight,
 } from "react-icons/fa";
+import { FiMaximize, FiMinimize } from "react-icons/fi";
 
 function Serial() {
   const dispatch = useDispatch();
   const clients = useSelector((state) => state.clients.list);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const now = new Date();
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const nextClients = clients.filter((client) => client.status === "upcoming");
-  const completedClients = clients.filter((client) => 
-    client.status === "done" && new Date(client.updatedAt) > last24h
+  const completedClients = clients.filter(
+    (client) =>
+      client.status === "done" && new Date(client.updatedAt) > last24h
   );
 
   const currentClient = nextClients[0];
   const upcomingClients = nextClients.slice(1);
 
-  
   useEffect(() => {
     dispatch(fetchClients());
     dispatch({ type: "ws/connect" });
@@ -31,18 +33,44 @@ function Serial() {
     };
   }, [dispatch]);
 
-  return (
-    <div className="min-h-screen shadow-sm">
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+  };
+
+  const SerialContent = (
+    <div className="space-y-8">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 lg:p-8"
+        className="flex flex-col items-center"
       >
-        {/* Header Stats */}
+        <div className="flex justify-between items-center w-full max-w-7xl mb-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-5xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Serial Queue
+          </h1>
+          <motion.button
+            onClick={toggleFullScreen}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2 shadow-md"
+          >
+            {isFullScreen ? (
+              <>
+                <FiMaximize className="w-5 h-5" />
+                <span>Exit Full Screen</span>
+              </>
+            ) : (
+              <>
+                < FiMinimize className="w-5 h-5" />
+                <span>Full Screen</span>
+              </>
+            )}
+          </motion.button>
+        </div>
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8"
         >
           {/* In Queue */}
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-white/20">
@@ -90,19 +118,20 @@ function Serial() {
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="relative overflow-hidden"
+          className="relative overflow-hidden w-full max-w-7xl px-4 sm:px-6 lg:px-8"
         >
-          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 sm:p-12 rounded-2xl shadow-2xl border border-white/20">
+          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 sm:p-12 rounded-2xl shadow-2xl border ">
             <motion.div
               animate={{
-                background: [
-                  "linear-gradient(45deg, #4f46e5, #7c3aed, #ec4899)",
-                  "linear-gradient(45deg, #7c3aed, #ec4899, #4f46e5)",
-                  "linear-gradient(45deg, #ec4899, #4f46e5, #7c3aed)",
+                background: 
+                [
+                  "linear-gradient(45deg, #3730a3, #7c3aed, #ec4899)",
+                  "linear-gradient(45deg, #7c3aed, #ec4899, #3730a3)",
+                  "linear-gradient(45deg, #ec4899, #3730a3, #7c3aed)"
                 ],
               }}
               transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
-              className="absolute inset-0 opacity-20"
+              className="absolute inset-0 rounded-2xl blur-smr "
             />
             <div className="relative z-10">
               <motion.h1
@@ -163,7 +192,7 @@ function Serial() {
         </motion.div>
 
         {/* Queue Sections */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8 mt-10">
           {/* Next in Line */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -278,6 +307,40 @@ function Serial() {
           </motion.div>
         </div>
       </motion.div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen shadow-sm">
+      {!isFullScreen ? (
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+          {SerialContent}
+        </div>
+      ) : (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50"
+            onClick={toggleFullScreen}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/95 w-full h-full p-4 sm:p-6 lg:p-10 overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="max-w-7xl mx-auto">
+                {SerialContent}
+              </div>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+      )}
     </div>
   );
 }

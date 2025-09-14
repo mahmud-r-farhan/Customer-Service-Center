@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { register } from "../redux/authSlice";
 import { motion } from "framer-motion";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Register() {
   const dispatch = useDispatch();
@@ -15,6 +16,34 @@ function Register() {
     confirmPassword: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const getPasswordStrength = (password) => {
+    let score = 0;
+    if (password.length >= 6) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    return score;
+  };
+
+  const strength = getPasswordStrength(formData.password);
+
+  const getStrengthLabel = (score) => {
+    switch (score) {
+      case 0:
+      case 1:
+        return { label: "Weak", color: "bg-red-500" };
+      case 2:
+      case 3:
+        return { label: "Medium", color: "bg-yellow-500" };
+      case 4:
+        return { label: "Strong", color: "bg-green-500" };
+      default:
+        return { label: "", color: "bg-gray-300" };
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,11 +73,13 @@ function Register() {
       .finally(() => setIsLoading(false));
   };
 
+  const strengthInfo = getStrengthLabel(strength);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4"
+      className="flex items-center justify-center py-12 px-4"
     >
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
         <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-white">Create your account</h2>
@@ -72,24 +103,56 @@ function Register() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
-            <input
-              name="password"
-              type="password"
-              required
-              className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-            <input
-              name="confirmPassword"
-              type="password"
-              required
-              className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Confirm password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-            />
+            
+            {/* Password Input with Eye Icon */}
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                className="w-full px-3 py-3 pr-10 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 dark:text-gray-300"
+                tabIndex={-1}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+
+            {/* Password Strength Bar */}
+            {formData.password && (
+              <div className="w-full">
+                <div className={`h-2 rounded ${strengthInfo.color}`}></div>
+                <p className="text-sm mt-1 text-gray-600 dark:text-gray-400">{strengthInfo.label} password</p>
+              </div>
+            )}
+
+            {/* Confirm Password Input with Eye Icon */}
+            <div className="relative">
+              <input
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                className="w-full px-3 py-3 pr-10 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 dark:text-gray-300"
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           <button
