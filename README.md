@@ -181,3 +181,10 @@ The Customer Service Center is a web-based application designed to streamline cu
 -   **Accessibility**: Added proper ARIA labels and keyboard navigation support.
 
 ---
+
+## Installation and Local Setup
+
+**Please refer to the setup guideline.mmd for more details.**
+
+or,
+#### *Visit*: https://www.mermaidchart.com/app/projects/908082d1-8773-440e-b4e4-c78245f0677d/diagrams/f324a2d5-0458-438a-a8ff-2aaa1eea41f8/version/v0.1/edit
