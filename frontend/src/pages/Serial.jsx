@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
+import { fetchClients } from "../redux/clientsSlice";
 import {
   FaRegClock,
   FaUsers,
@@ -11,14 +12,19 @@ import {
 function Serial() {
   const dispatch = useDispatch();
   const clients = useSelector((state) => state.clients.list);
+  const now = new Date();
+  const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const nextClients = clients.filter((client) => client.status === "upcoming");
-  const completedClients = clients.filter((client) => client.status === "done");
+  const completedClients = clients.filter((client) => 
+    client.status === "done" && new Date(client.updatedAt) > last24h
+  );
 
   const currentClient = nextClients[0];
   const upcomingClients = nextClients.slice(1);
 
   
   useEffect(() => {
+    dispatch(fetchClients());
     dispatch({ type: "ws/connect" });
     return () => {
       dispatch({ type: "ws/disconnect" });
@@ -26,7 +32,7 @@ function Serial() {
   }, [dispatch]);
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen shadow-sm">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -51,14 +57,14 @@ function Serial() {
             </div>
           </div>
 
-          {/* Completed */}
+          {/* Completed (Last 24h) */}
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-white/20">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
                 <FaCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Completed (24h)</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedClients.length}</p>
               </div>
             </div>
@@ -216,7 +222,7 @@ function Serial() {
             </div>
           </motion.div>
 
-          {/* Recently Completed */}
+          {/* Recently Completed (Last 24h) */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -227,7 +233,7 @@ function Serial() {
                 <FaCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Recently Completed
+                Recently Completed (24h)
               </h2>
             </div>
 
@@ -252,7 +258,7 @@ function Serial() {
                             {client.name}
                           </p>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Completed
+                            Completed {new Date(client.updatedAt).toLocaleTimeString()}
                           </p>
                         </div>
                       </div>
@@ -265,7 +271,7 @@ function Serial() {
               {completedClients.length === 0 && (
                 <div className="text-center py-12">
                   <FaCheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">No completed services yet</p>
+                  <p className="text-gray-500 dark:text-gray-400">No completed services in last 24h</p>
                 </div>
               )}
             </div>

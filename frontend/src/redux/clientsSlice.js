@@ -61,6 +61,14 @@ const clientsSlice = createSlice({
       // manually replace full list
       state.list = Array.isArray(action.payload) ? action.payload : [];
     },
+    updateSingleClient: (state, action) => {
+      state.list = state.list.map((client) =>
+        client._id === action.payload._id ? action.payload : client
+      );
+      if (state.currentClient?._id === action.payload._id) {
+        state.currentClient = action.payload.status === "done" ? null : action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -113,5 +121,5 @@ const clientsSlice = createSlice({
   },
 });
 
-export const { setCurrentClient, clearCurrentClient, updateClients } = clientsSlice.actions;
+export const { setCurrentClient, clearCurrentClient, updateClients, updateSingleClient } = clientsSlice.actions;
 export default clientsSlice.reducer;

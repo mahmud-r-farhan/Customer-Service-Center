@@ -5,7 +5,6 @@ const clientSchema = new mongoose.Schema({
   number: { type: String, required: true },
   token: { type: String, required: true, unique: true },
   status: { type: String, enum: ["upcoming", "done"], default: "upcoming" },
-  createdAt: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("Client", clientSchema);

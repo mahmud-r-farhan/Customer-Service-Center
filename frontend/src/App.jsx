@@ -5,7 +5,7 @@ import Serial from "./pages/Serial";
 import AddGuest from "./pages/AddGuest";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
-import PrivateRoute from "./components/PrivatRoute";
+import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 import Register from "./pages/Register";
 
@@ -24,7 +24,7 @@ function App() {
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           </Routes>
         </div>
-        <Toaster position="top-right" richColors />
+        <Toaster position="top-right" />
       </div>
     </Router>
   );

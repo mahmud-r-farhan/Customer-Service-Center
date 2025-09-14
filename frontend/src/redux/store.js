@@ -1,10 +1,10 @@
-import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./authSlice";
-import clientsReducer from "./clientsSlice";
-import settingsReducer from "./settingsSlice";
-import { websocketMiddleware } from "./websocketMiddleware";
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './authSlice';
+import clientsReducer from './clientsSlice';
+import settingsReducer from './settingsSlice';
+import { websocketMiddleware } from './websocketMiddleware';
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
     auth: authReducer,
     clients: clientsReducer,
@@ -13,3 +13,5 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(websocketMiddleware),
 });
+
+export default store;

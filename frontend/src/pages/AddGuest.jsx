@@ -72,7 +72,7 @@ function AddGuest() {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md mx-auto space-y-8 p-4 sm:p-6 lg:p-8"
     >
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">Add Guest</h1>
+      <h1 className="text-5xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent p-2 text-center">Add Guest</h1>
       {!showPrint ? (
         <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg space-y-6">
           <div>
@@ -105,7 +105,7 @@ function AddGuest() {
             type="submit"
             className="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition-colors"
           >
-            Register
+            Get Serial Token
           </button>
         </form>
       ) : (

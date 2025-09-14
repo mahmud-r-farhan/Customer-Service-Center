@@ -1,4 +1,4 @@
-import { updateClients, setCurrentClient } from "./clientsSlice";
+import { updateClients, setCurrentClient, updateSingleClient } from "./clientsSlice";
 
 let socket = null;
 
@@ -23,8 +23,7 @@ export const websocketMiddleware = (store) => (next) => (action) => {
             store.dispatch(setCurrentClient(data.payload));
             break;
           case "CLIENT_STATUS_UPDATED":
-            // Can handle specific updates
-            store.dispatch(updateClients(data.payload));
+            store.dispatch(updateSingleClient(data.payload));
             break;
           default:
             break;
