@@ -8,7 +8,6 @@ export const fetchClients = createAsyncThunk(
     try {
       const response = await api.get("/clients");
       const data = response.data;
-      // Ensure it's always an array
       return Array.isArray(data) ? data : data.clients || [];
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: "Failed to fetch clients" });
@@ -22,7 +21,7 @@ export const addClient = createAsyncThunk(
   async (clientData, { rejectWithValue }) => {
     try {
       const response = await api.post("/clients", clientData);
-      return response.data; // single client object
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: "Failed to add client" });
     }
@@ -32,10 +31,10 @@ export const addClient = createAsyncThunk(
 // Update client status
 export const updateClientStatus = createAsyncThunk(
   "clients/updateStatus",
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status, agent }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/clients/${id}/status`, { status });
-      return response.data; // single client object
+      const response = await api.put(`/clients/${id}/status`, { status, agent });
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: "Failed to update status" });
     }
@@ -45,7 +44,7 @@ export const updateClientStatus = createAsyncThunk(
 const clientsSlice = createSlice({
   name: "clients",
   initialState: {
-    list: [], // always array
+    list: [],
     loading: false,
     error: null,
     currentClient: null,
@@ -58,13 +57,13 @@ const clientsSlice = createSlice({
       state.currentClient = null;
     },
     updateClients: (state, action) => {
-      // manually replace full list
       state.list = Array.isArray(action.payload) ? action.payload : [];
     },
     updateSingleClient: (state, action) => {
-      state.list = state.list.map((client) =>
-        client._id === action.payload._id ? action.payload : client
-      );
+      const index = state.list.findIndex((client) => client._id === action.payload._id);
+      if (index !== -1) {
+        state.list[index] = action.payload;
+      }
       if (state.currentClient?._id === action.payload._id) {
         state.currentClient = action.payload.status === "done" ? null : action.payload;
       }
@@ -72,7 +71,6 @@ const clientsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch clients
       .addCase(fetchClients.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -85,33 +83,34 @@ const clientsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      // Add client
       .addCase(addClient.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(addClient.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = [action.payload, ...state.list];
+        state.list.unshift(action.payload); // Add to beginning for new clients
       })
       .addCase(addClient.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      // Update client status
       .addCase(updateClientStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateClientStatus.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = state.list.map((client) =>
-          client._id === action.payload._id ? action.payload : client
-        );
+        const index = state.list.findIndex((client) => client._id === action.payload._id);
+        if (index !== -1) {
+          state.list[index] = action.payload;
+        }
         if (state.currentClient?._id === action.payload._id) {
-          state.currentClient = null;
+          if (action.payload.status === "done") {
+            state.currentClient = null;
+          } else {
+            state.currentClient = action.payload;
+          }
         }
       })
       .addCase(updateClientStatus.rejected, (state, action) => {

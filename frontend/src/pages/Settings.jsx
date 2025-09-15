@@ -12,22 +12,25 @@ function Settings() {
   const user = useSelector((state) => state.auth.user);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setName(user?.name || "");
     setEmail(user?.email || "");
   }, [user]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email) {
       toast.error("Please fill in all fields");
       return;
     }
-    dispatch(updateUserSettings({ name, email }))
+    setIsLoading(true);
+    dispatch(updateUserSettings({ name, email: user.email, newEmail: email }))
       .unwrap()
       .then(() => toast.success("Settings updated successfully"))
-      .catch(() => toast.error("Failed to update settings"));
+      .catch((error) => toast.error(error.message || "Failed to update settings"))
+      .finally(() => setIsLoading(false));
   };
 
   return (
@@ -84,9 +87,12 @@ function Settings() {
         </div>
         <button
           type="submit"
-          className="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+          disabled={isLoading}
+          className={`w-full sm:w-auto px-6 py-3 text-white rounded-md ${
+            isLoading ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"
+          } focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors`}
         >
-          Save Changes
+          {isLoading ? "Saving..." : "Save Changes"}
         </button>
       </form>
 
@@ -137,9 +143,7 @@ function Settings() {
               }
             />
           </div>
-          <div className="flex items-center justify-between"
-          title="DEMO"
-          >
+          <div className="flex items-center justify-between">
             <span className="text-gray-700 dark:text-gray-300">
               Desktop Notifications
             </span>
@@ -170,7 +174,6 @@ function Settings() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg space-y-6"
-          title="DEMO"
         >
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Privacy & Security
@@ -186,15 +189,13 @@ function Settings() {
               }
             />
           </div>
-         
         </motion.div>
 
-       {/* Account Preferences */}
+        {/* Account Preferences */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg space-y-6"
-          title="DEMO"
         >
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Account Preferences
@@ -240,7 +241,6 @@ function Settings() {
             </select>
           </div>
         </motion.div>
-
       </div>
     </motion.div>
   );

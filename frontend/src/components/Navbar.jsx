@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import { logout } from "../redux/authSlice";
@@ -6,6 +6,7 @@ import logo from "../assets/logo.png";
 
 function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅ add navigate
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
@@ -15,6 +16,11 @@ function Navbar() {
     { path: "/add-guest", label: "Add Guest" },
     { path: "/settings", label: "Settings" },
   ];
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-lg">
@@ -48,9 +54,14 @@ function Navbar() {
 
           {isAuthenticated ? (
             <div className="flex items-center space-x-4 sm:space-x-6">
-              <span className=" dark:text-purple-400 text-sm lg:text-base font-medium hidden sm:block" title="User Name">{user?.name}</span>
+              <span
+                className="dark:text-purple-400 text-sm lg:text-base font-medium hidden sm:block"
+                title="User Name"
+              >
+                {user?.name}
+              </span>
               <button
-                onClick={() => dispatch(logout())}
+                onClick={handleLogout}
                 className="bg-red-600 text-white px-4 py-2 rounded-md text-sm lg:text-base hover:bg-red-700 transition-colors"
               >
                 Logout

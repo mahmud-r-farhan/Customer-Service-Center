@@ -1,10 +1,8 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const auth = require("../middleware/auth");
-
 const router = express.Router();
 
+// Register user
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -17,14 +15,14 @@ router.post("/register", async (req, res) => {
     }
     user = new User({ name, email, password });
     await user.save();
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    res.status(201).json({ user: { id: user._id, name: user.name, email: user.email, role: user.role }, token });
+    res.status(201).json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     res.status(500).json({ message: "Registration failed. Please try again." });
   }
 });
 
+// Login user
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -32,22 +30,40 @@ router.post("/login", async (req, res) => {
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role }, token });
+    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-router.put("/settings", auth, async (req, res) => {
+// Verify credentials
+router.post("/verify", async (req, res) => {
   try {
-    const { name, email } = req.body;
-    const user = await User.findByIdAndUpdate(req.user.userId, { name, email }, { new: true });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update user settings
+router.put("/settings", async (req, res) => {
+  try {
+    const { email, name, newEmail } = req.body;
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
+    user.name = name || user.name;
+    user.email = newEmail || user.email;
+    await user.save();
     res.json({ id: user._id, name: user.name, email: user.email, role: user.role });
   } catch (error) {
-    console.error('Settings update error:', error);
+    console.error("Settings update error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

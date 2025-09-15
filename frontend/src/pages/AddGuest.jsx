@@ -1,58 +1,39 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { addClient } from "../redux/clientsSlice";
-import { FiMaximize, FiMinimize } from "react-icons/fi";
-import logo from "../assets/logo.png";
-
-class TokenGenerator {
-  constructor() {
-    this.letter = 'A';
-    this.number = 0;
-  }
-
-  generateToken() {
-    const formattedNumber = this.number.toString().padStart(2, '0');
-    const token = `${this.letter}${formattedNumber}`;
-    this.number++;
-    if (this.number > 99) {
-      this.number = 0;
-      this.letter = String.fromCharCode(this.letter.charCodeAt(0) + 1);
-      if (this.letter > 'Z') {
-        this.letter = 'A'; // Reset to 'A' for cycling
-      }
-    }
-    return token;
-  }
-}
-
-// Instantiate token generator outside component to persist state
-const tokenGenerator = new TokenGenerator();
+import { FiMaximize, FiMinimize, FiPrinter, FiPlus } from "react-icons/fi";
+import logo from "/app-logo.png";
+import GuestForm from "../components/AddGuest/GuestForm";
+import PrintableCard from "../components/AddGuest/PrintableCard";
+import FullScreenWrapper from "../components/AddGuest/FullScreenWrapper";
 
 function AddGuest() {
   const dispatch = useDispatch();
-  const [number, setNumber] = useState("");
-  const [name, setName] = useState("");
+  const { loading: addingClient } = useSelector((state) => state.clients);
   const [showPrint, setShowPrint] = useState(false);
   const [token, setToken] = useState("");
+  const [name, setName] = useState(""); // Keep local for form reset
+  const [number, setNumber] = useState(""); // Keep local for form reset
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!number || !name) {
+  const handleSubmit = async (formData) => {
+    const { name: formName, number: formNumber } = formData;
+    if (!formNumber || !formName.trim()) {
       toast.error("Please fill in all fields");
       return;
     }
-    const newToken = tokenGenerator.generateToken();
-    dispatch(addClient({ number, name, token: newToken }))
-      .unwrap()
-      .then(() => {
-        setToken(newToken);
-        setShowPrint(true);
-        toast.success("Guest added successfully");
-      })
-      .catch(() => toast.error("Failed to add guest"));
+
+    try {
+      const result = await dispatch(addClient({ name: formName.trim(), number: formNumber })).unwrap();
+      setToken(result.token);
+      setShowPrint(true);
+      toast.success("Guest added successfully");
+    } catch (error) {
+      console.error("Add client error:", error);
+      toast.error(error.message || "Failed to add guest");
+    }
   };
 
   const handlePrint = () => {
@@ -70,30 +51,6 @@ function AddGuest() {
     setIsFullScreen(!isFullScreen);
   };
 
-  const PrintableCard = () => (
-    <div className="print-card max-w-sm mx-auto">
-      <style>
-        {`
-          @media print {
-            body * { visibility: hidden; }
-            .print-card, .print-card * { visibility: visible; }
-            .print-card { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none; }
-          }
-        `}
-      </style>
-      <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-indigo-600">
-        <div className="text-center space-y-4">
-          <img src={logo} alt="Company Logo" className="h-16 mx-auto" />
-          <h2 className="text-4xl font-bold text-indigo-600">{token}</h2>
-          <p className="text-xl text-gray-700">{name}</p>
-          <p className="text-gray-700">{number}</p>
-          <p className="text-sm text-gray-500">{new Date().toLocaleString()}</p>
-        </div>
-      </div>
-    </div>
-  );
-
   const AddGuestContent = (
     <div className="space-y-8">
       <motion.div
@@ -101,79 +58,65 @@ function AddGuest() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col items-center"
       >
-        <div className="flex justify-between items-center w-full mb-6">
-          <h1 className="text-5xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent p-2">
-            Add Guest
-          </h1>
+        <div className="flex justify-between items-center w-full mb-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center space-x-3"
+          >
+            <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Add Guest
+            </h1>
+          </motion.div>
+          
           <motion.button
             onClick={toggleFullScreen}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2 shadow-md"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl"
           >
-            {isFullScreen ? (
-              <>
-                <FiMinimize className="w-5 h-5" />
-              </>
-            ) : (
-              <>
-                <FiMaximize className="w-5 h-5" />
-              </>
-            )}
+            {isFullScreen ? <FiMinimize className="w-5 h-5" /> : <FiMaximize className="w-5 h-5" />}
           </motion.button>
         </div>
+
         {!showPrint ? (
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg space-y-6 w-full max-w-md">
-            <div>
-              <label htmlFor="number" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="number"
-                value={number}
-                onChange={(e) => setNumber(e.target.value)}
-                className="mt-2 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-2 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition-colors"
-            >
-              Get Serial Token
-            </button>
-          </form>
+          <GuestForm
+            name={name}
+            number={number}
+            addingClient={addingClient}
+            onSubmit={handleSubmit}
+            onNameChange={setName}
+            onNumberChange={setNumber}
+          />
         ) : (
-          <div className="space-y-6 w-full max-w-md">
-            <PrintableCard />
-            <div className="flex flex-col sm:flex-row gap-4 no-print">
-              <button
+          <div className="space-y-8 w-full max-w-md">
+            <PrintableCard token={token} name={name} number={number} logo={logo} />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="flex flex-col sm:flex-row gap-4 no-print"
+            >
+              <motion.button
                 onClick={handlePrint}
-                className="flex-1 bg-green-600 text-white py-3 rounded-md hover:bg-green-700 transition-colors"
+                whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(34, 197, 94, 0.3)" }}
+                whileTap={{ scale: 0.98 }}
+                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                Print Token
-              </button>
-              <button
+                <FiPrinter className="w-5 h-5" />
+                <span>Print Token</span>
+              </motion.button>
+              <motion.button
                 onClick={handleAddAnother}
-                className="flex-1 bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition-colors"
+                whileHover={{ scale: 1.02, boxShadow: "0 8px 32px rgba(99, 102, 241, 0.3)" }}
+                whileTap={{ scale: 0.98 }}
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                Add Another Guest
-              </button>
-            </div>
+                <FiPlus className="w-5 h-5" />
+                <span>New Guest</span>
+              </motion.button>
+            </motion.div>
           </div>
         )}
       </motion.div>
@@ -181,37 +124,13 @@ function AddGuest() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 sm:p-6 lg:p-8 flex justify-center">
-      {!isFullScreen ? (
-        <div className="max-w-md mx-auto">
-          {AddGuestContent}
-        </div>
-      ) : (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            onClick={toggleFullScreen}
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:bg-gradient-to-br dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 w-full h-full p-4 sm:p-6 lg:p-10 overflow-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="max-w-md mx-auto">
-                {AddGuestContent}
-              </div>
-            </motion.div>
-          </motion.div>
-        </AnimatePresence>
-      )}
-    </div>
+    <FullScreenWrapper
+      isFullScreen={isFullScreen}
+      onToggleFullScreen={toggleFullScreen}
+      content={AddGuestContent}
+      maxWidth="max-w-md"
+      backgroundClass="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 dark:bg-gradient-to-br dark:from-gray-800 dark:via-gray-900 dark:to-gray-800"
+    />
   );
 }
 

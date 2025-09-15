@@ -1,18 +1,19 @@
 # Customer Service Center
 
-The Customer Service Center is a web-based application designed to streamline customer queue management, token generation, and agent-assisted consultations. It enables customers to register with their name and phone number, receive a unique token, and wait for their turn. Agents can call customers for consultation, track ongoing services, and mark consultations as completed, with real-time updates across the system.
+The Customer Service Center is a web-based application designed to streamline customer queue management, token generation, and agent-assisted consultations. It enables customers to register with their name and phone number, receive a unique token, and wait for their turn. Agents can call customers for consultation, track ongoing services with agent assignment, and mark consultations as completed, with real-time updates across the system using WebSockets.
 
 ## Features
 
 -   **Customer Registration**: Customers provide their name and phone number to join the queue.
 -   **Token Generation**: Automatically generates unique tokens for each registered customer.
--   **Serial Token Display**: Displays the current serving token and queue status on a dedicated dashboard.
--   **Agent Call System**: Allows agents to call the next customer in the queue for consultation.
--   **Consultation Management**: Tracks ongoing consultations and updates their status upon completion.
--   **Recently Completed Cases**: Displays a list of recently completed consultations, filtered to the last 24 hours.
--   **Excel Export**: Enables exporting customer data from the last 24 hours to an Excel file for reporting.
--   **Real-time Updates**: Uses WebSockets to provide live updates to all connected clients.
+-   **Serial Token Display**: Displays the current serving token, queue status, and assigned agent on a dedicated dashboard.
+-   **Agent Call System**: Allows agents to call the next customer in the queue for consultation and assign themselves to the client.
+-   **Consultation Management**: Tracks ongoing consultations, including agent assignment and consultation duration, and updates status upon completion.
+-   **Recently Completed Cases**: Displays a list of recently completed consultations within the last 24 hours, including consultation duration and assigned agent.
+-   **Excel Export**: Exports customer data from the last 24 hours, including consultation time and agent, to an Excel file for reporting.
+-   **Real-time Updates**: Uses WebSockets to provide live updates on queue changes, agent assignments, and consultation statuses to all connected clients.
 -   **User Authentication**: Secure login and registration for agents with JWT-based authentication.
+-   **Status Indicators**: Visual indicators (red for idle, green for in-consultation) for clients in the queue.
 
 ![CS Center banner](https://customer-service-center.vercel.app/Gemini_Generated_Image_fxeinjfxeinjfxei.png)
 
@@ -138,40 +139,43 @@ The Customer Service Center is a web-based application designed to streamline cu
 
 -   **GET /api/clients**: Retrieve all clients.
     -   Headers: `Authorization: Bearer <token>`
-    -   Response: `[{ _id, name, number, token, status, createdAt, updatedAt }, ...]`
+    -   Response: `[{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }, ...]`
 -   **POST /api/clients**: Add a new client to the queue.
     -   Body: `{ name: string, number: string, token: string }`
     -   Headers: `Authorization: Bearer <token>`
-    -   Response: `{ _id, name, number, token, status, createdAt, updatedAt }`
--   **PUT /api/clients/:id/status**: Update client status (upcoming/done).
-    -   Body: `{ status: "upcoming" | "done" }`
+    -   Response: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
+-   **PUT /api/clients/:id/status**: Update client status and agent assignment.
+    -   Body: `{ status: "upcoming" | "done", agent: string }`
     -   Headers: `Authorization: Bearer <token>`
-    -   Response: `{ _id, name, number, token, status, createdAt, updatedAt }`
+    -   Response: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
 
 ### WebSocket Events
 
 -   **CLIENTS_UPDATE**: Broadcasts the updated client list to all connected clients.
-    -   Payload: `[{ _id, name, number, token, status, createdAt, updatedAt }, ...]`
--   **CLIENT_STATUS_UPDATED**: Notifies when a client's status is updated.
-    -   Payload: `{ _id, name, number, token, status, createdAt, updatedAt }`
+    -   Payload: `[{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }, ...]`
+-   **CLIENT_STATUS_UPDATED**: Notifies when a client's status or agent is updated.
+    -   Payload: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
 -   **CLIENT_ASSIGNED**: Notifies when a client is assigned to an agent.
-    -   Payload: `{ _id, name, number, token, status, createdAt, updatedAt }`
+    -   Payload: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
 
 ## Workflow
 
 1.  **Customer Registration**: Customers provide their name and phone number via the "Add Guest" page.
 2.  **Token Generation**: A unique token is generated and assigned to the customer.
-3.  **Queue Display**: The "Serial" page displays the current serving token and upcoming queue.
-4.  **Agent Interaction**: Agents use the "Dashboard" to call customers and manage consultations.
-5.  **Consultation Completion**: Agents mark consultations as done, updating the client's status.
-6.  **Real-time Updates**: WebSockets ensure all clients see queue changes instantly.
-7.  **Data Export**: Agents can export client data from the last 24 hours to Excel from the Dashboard.
+3.  **Queue Display**: The "Serial" page displays the current serving token, upcoming queue, and assigned agent with real-time status indicators (red for idle, green for in-consultation).
+4.  **Agent Interaction**: Agents use the "Dashboard" to call customers, assign themselves to consultations, and manage ongoing sessions.
+5.  **Consultation Completion**: Agents mark consultations as done, updating the client's status and recording the consultation duration.
+6.  **Real-time Updates**: WebSockets ensure all clients see queue changes, agent assignments, and status updates instantly.
+7.  **Data Export**: Agents can export client data from the last 24 hours, including consultation time and agent, to Excel from the Dashboard.
 
 ## UI/UX Improvements
 
+-   **Agent Tracking**: Displays the assigned agent's name in the "Now Serving" section (Serial page) and "Upcoming Clients" section (Dashboard).
+-   **Status Indicators**: Added red/green dots to indicate whether a client is idle (red) or in consultation (green) in both Serial and Dashboard pages.
+-   **Consultation Duration**: Shows the duration of completed consultations in the "Recently Completed" section and Excel export.
 -   **Settings Page Fix**: Added `useEffect` to sync form inputs with user data, preventing empty fields.
--   **Serial Page**: Limited "Recently Completed" section to show only clients completed in the last 24 hours.
--   **Dashboard**: Added an "Export Last 24h" button to download client data as an Excel file.
+-   **Serial Page**: Limited "Recently Completed" section to show only clients completed in the last 24 hours, with consultation duration and agent details.
+-   **Dashboard**: Added an "Export Last 24h" button to download client data, including consultation time and agent, as an Excel file.
 -   **Visual Enhancements**:
     -   Improved color contrast for better readability.
     -   Added subtle animations with Framer Motion for smoother transitions.
@@ -180,11 +184,10 @@ The Customer Service Center is a web-based application designed to streamline cu
 -   **Responsive Design**: Optimized layouts for mobile, tablet, and desktop screens.
 -   **Accessibility**: Added proper ARIA labels and keyboard navigation support.
 
----
-
 ## Installation and Local Setup
 
 **Please refer to the setup guideline.mmd for more details.**
 
 or,
-#### *Visit*: https://www.mermaidchart.com/app/projects/908082d1-8773-440e-b4e4-c78245f0677d/diagrams/f324a2d5-0458-438a-a8ff-2aaa1eea41f8/version/v0.1/edit
+
+#### _Visit_: [https://www.mermaidchart.com/app/projects/908082d1-8773-440e-b4e4-c78245f0677d/diagrams/f324a2d5-0458-438a-a8ff-2aaa1eea41f8/version/v0.1/edit](https://www.mermaidchart.com/app/projects/908082d1-8773-440e-b4e4-c78245f0677d/diagrams/f324a2d5-0458-438a-a8ff-2aaa1eea41f8/version/v0.1/edit)
