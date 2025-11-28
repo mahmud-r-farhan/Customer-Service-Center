@@ -15,9 +15,8 @@ The Customer Service Center is a web-based application designed to streamline cu
 -   **User Authentication**: Secure login and registration for agents with JWT-based authentication.
 -   **Status Indicators**: Visual indicators (red for idle, green for in-consultation) for clients in the queue.
 
-![CS Center banner](https://customer-service-center.vercel.app/Gemini_Generated_Image_fxeinjfxeinjfxei.png)
 
-![CS Center banner](https://customer-service-center.vercel.app/banner.png)
+![CS Center banner](https://i.postimg.cc/CxqtD63L/unnamed-(3)-(1).jpg)
 
 ## Technology Stack
 
