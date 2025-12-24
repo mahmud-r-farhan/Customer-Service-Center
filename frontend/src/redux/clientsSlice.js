@@ -57,12 +57,21 @@ const clientsSlice = createSlice({
       state.currentClient = null;
     },
     updateClients: (state, action) => {
+      try {
+        console.debug('clients/updateClients — received length:', Array.isArray(action.payload) ? action.payload.length : 0);
+      } catch (e) {}
       state.list = Array.isArray(action.payload) ? action.payload : [];
     },
     updateSingleClient: (state, action) => {
+      try {
+        console.debug('clients/updateSingleClient — id:', action.payload._id, 'status:', action.payload.status, 'agent:', action.payload.agent);
+      } catch (e) {}
       const index = state.list.findIndex((client) => client._id === action.payload._id);
       if (index !== -1) {
         state.list[index] = action.payload;
+      } else {
+        // If the single client update arrives but list doesn't contain it yet, add it.
+        state.list.unshift(action.payload);
       }
       if (state.currentClient?._id === action.payload._id) {
         state.currentClient = action.payload.status === "done" ? null : action.payload;

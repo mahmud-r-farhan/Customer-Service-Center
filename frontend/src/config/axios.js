@@ -2,21 +2,11 @@ import axios from 'axios';
 import { logout } from '../redux/authSlice';
 import store from '../redux/store';
 
+const serverUrl = (import.meta.env.VITE_SERVER_URL || '').replace(/\/$/, '');
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_SERVER_URL}/api`,
+  baseURL: `${serverUrl}/api`,
+  withCredentials: true,
 });
-
-// Automatically attach token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 // Handle 401 Unauthorized (e.g. expired token)
 api.interceptors.response.use(

@@ -12,3 +12,13 @@ createRoot(document.getElementById("root")).render(
     </Provider>
   </StrictMode>
 );
+
+// Register service worker for basic PWA support in production
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swUrl = '/sw.js';
+    navigator.serviceWorker.register(swUrl)
+      .then((reg) => console.log('Service worker registered:', reg.scope))
+      .catch((err) => console.warn('Service worker registration failed:', err));
+  });
+}

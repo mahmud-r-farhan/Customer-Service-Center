@@ -127,7 +127,7 @@ function Serial() {
           animate={{ scale: 1, opacity: 1 }}
           className="relative overflow-hidden w-full max-w-7xl px-4 sm:px-6 lg:px-8"
         >
-          <NowServing displayCurrent={displayCurrent} />
+          <NowServing consultingClients={consultingClients} fallbackClient={displayCurrent} />
         </motion.div>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8 mt-10">
           <NextInLine displayUpcoming={displayUpcoming} />

@@ -4,8 +4,7 @@ import api from "../config/axios";
 export const login = createAsyncThunk("auth/login", async ({ email, password }, { rejectWithValue }) => {
   try {
     const response = await api.post("/auth/login", { email, password });
-    localStorage.setItem("email", email);
-    localStorage.setItem("password", password); // Use sessionStorage for tab-specific storage
+    // Do NOT store password or token in localStorage. Server sets HttpOnly cookie.
     return response.data;
   } catch (error) {
     return rejectWithValue(error.response?.data || { message: "Login failed" });
@@ -17,8 +16,6 @@ export const register = createAsyncThunk(
   async ({ name, email, password }, { rejectWithValue }) => {
     try {
       const response = await api.post("/auth/register", { name, email, password });
-      localStorage.setItem("email", email);
-      localStorage.setItem("password", password); // Use sessionStorage for tab-specific storage
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: "Registration failed" });
@@ -31,9 +28,7 @@ export const updateUserSettings = createAsyncThunk(
   async ({ name, email, newEmail }, { rejectWithValue }) => {
     try {
       const response = await api.put("/auth/settings", { name, email, newEmail });
-      if (newEmail) {
-        localStorage.setItem("email", newEmail); // Update email in storage
-      }
+      // Server returns updated user; no sensitive data stored locally.
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: "Failed to update settings" });
@@ -45,26 +40,29 @@ export const verifyCredentials = createAsyncThunk(
   "auth/verifyCredentials",
   async (_, { rejectWithValue }) => {
     try {
-      const email = localStorage.getItem("email");
-      const password = localStorage.getItem("password");
-      if (!email || !password) {
-        throw new Error("No credentials found");
-      }
-      const response = await api.post("/auth/verify", { email, password });
+      // Verify session by asking server for current user (cookie-based auth)
+      const response = await api.get("/auth/me");
       return response.data;
     } catch (error) {
-      localStorage.removeItem("email");
-      localStorage.removeItem("password");
       return rejectWithValue(error.response?.data || { message: "Verification failed" });
     }
   }
 );
 
+export const logoutAsync = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
+  try {
+    await api.post("/auth/logout");
+    return { message: "Logged out" };
+  } catch (error) {
+    return rejectWithValue(error.response?.data || { message: "Logout failed" });
+  }
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: null,
-    isAuthenticated: !!(localStorage.getItem("email") && localStorage.getItem("password")),
+    isAuthenticated: false,
     loading: false,
     error: null,
   },
@@ -72,8 +70,6 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("email");
-      localStorage.removeItem("password");
     },
   },
   extraReducers: (builder) => {
@@ -130,6 +126,11 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload;
       });
+
+    builder.addCase(logoutAsync.fulfilled, (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+    });
   },
 });
 

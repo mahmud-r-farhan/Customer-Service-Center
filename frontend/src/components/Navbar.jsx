@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import { logout } from "../redux/authSlice";
+import { useState } from "react";
 import logo from "../assets/logo.png";
 
 function Navbar() {
@@ -9,6 +10,7 @@ function Navbar() {
   const navigate = useNavigate(); // ✅ add navigate
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const [open, setOpen] = useState(false);
 
   const navItems = [
     { path: "/", label: "Dashboard" },
@@ -23,12 +25,12 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-lg">
+    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 sm:h-20 items-center">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0">
-              <img className="h-8 sm:h-10 w-auto" src={logo} alt="Logo" />
+            <Link to="/" className="flex-shrink-0" aria-label="Home">
+              <img loading="lazy" decoding="async" className="h-8 sm:h-10 w-auto" src={logo} alt="Logo" />
             </Link>
             {isAuthenticated && (
               <div className="hidden sm:ml-8 sm:flex sm:space-x-8 lg:space-x-10">
@@ -52,10 +54,31 @@ function Navbar() {
             )}
           </div>
 
+          {/* Mobile menu button */}
+          {isAuthenticated && (
+            <button
+              type="button"
+              aria-controls="mobile-menu"
+              aria-expanded={open}
+              onClick={() => setOpen(!open)}
+              className="sm:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            >
+              {open ? (
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          )}
+
           {isAuthenticated ? (
-            <div className="flex items-center space-x-4 sm:space-x-6">
+            <div className="hidden sm:flex items-center space-x-4 sm:space-x-6">
               <span
-                className="dark:text-purple-400 text-sm lg:text-base font-medium hidden sm:block"
+                className="dark:text-purple-400 text-sm lg:text-base font-medium"
                 title="User Name"
               >
                 {user?.name}
@@ -85,6 +108,39 @@ function Navbar() {
           )}
         </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {isAuthenticated && (
+        <div className={`${open ? 'block' : 'hidden'} sm:hidden border-t border-gray-200 dark:border-gray-700`} id="mobile-menu">
+          <div className="px-4 py-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.name}</span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setOpen(false)}
+                  className={`px-3 py-2 rounded-md text-sm text-center ${
+                    location.pathname === item.path
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

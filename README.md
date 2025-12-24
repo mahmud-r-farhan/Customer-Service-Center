@@ -125,13 +125,13 @@ The Customer Service Center is a web-based application designed to streamline cu
 
 -   **POST /api/auth/register**: Register a new agent.
     -   Body: `{ name: string, email: string, password: string }`
-    -   Response: `{ user: { id, name, email, role }, token: string }`
+    -   Response: `{ user: { id, name, email, role } }` and a secure HttpOnly cookie `token` is set for the session.
 -   **POST /api/auth/login**: Authenticate an agent and return a JWT token.
     -   Body: `{ email: string, password: string }`
-    -   Response: `{ user: { id, name, email, role }, token: string }`
+    -   Response: `{ user: { id, name, email, role } }` and a secure HttpOnly cookie `token` is set for the session.
 -   **PUT /api/auth/settings**: Update agent profile settings.
     -   Body: `{ name: string, email: string }`
-    -   Headers: `Authorization: Bearer <token>`
+    -   Authentication: Server uses HttpOnly cookie `token` (the API also accepts `Authorization: Bearer <token>` as a fallback).
     -   Response: `{ id, name, email, role }`
 
 ### Client Management
