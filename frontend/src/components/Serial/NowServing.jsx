@@ -5,14 +5,6 @@ import { FaRegClock } from "react-icons/fa";
 function NowServing({ consultingClients = [], fallbackClient = null }) {
   const items = consultingClients.length > 0 ? consultingClients : (fallbackClient ? [fallbackClient] : []);
 
-  useEffect(() => {
-    try {
-      console.debug('NowServing — consultingClients count:', consultingClients.length, 'items count:', items.length);
-      // Deep log first few entries for clarity
-      if (consultingClients.length > 0) console.debug('NowServing sample:', consultingClients.slice(0,5).map(c => ({ id: c._id, token: c.token, agent: c.agent, status: c.status })));
-    } catch (e) {}
-  }, [consultingClients, items]);
-
   return (
     <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 sm:p-8 rounded-2xl shadow-2xl border relative overflow-hidden">
       <motion.div

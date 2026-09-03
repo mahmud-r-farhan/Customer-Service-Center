@@ -57,15 +57,9 @@ const clientsSlice = createSlice({
       state.currentClient = null;
     },
     updateClients: (state, action) => {
-      try {
-        console.debug('clients/updateClients — received length:', Array.isArray(action.payload) ? action.payload.length : 0);
-      } catch (e) {}
       state.list = Array.isArray(action.payload) ? action.payload : [];
     },
     updateSingleClient: (state, action) => {
-      try {
-        console.debug('clients/updateSingleClient — id:', action.payload._id, 'status:', action.payload.status, 'agent:', action.payload.agent);
-      } catch (e) {}
       const index = state.list.findIndex((client) => client._id === action.payload._id);
       if (index !== -1) {
         state.list[index] = action.payload;

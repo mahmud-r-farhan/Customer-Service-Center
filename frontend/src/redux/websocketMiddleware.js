@@ -30,8 +30,6 @@ function connect(store) {
   socket.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      // Debug: log incoming WS payloads
-      console.debug('WS incoming:', data);
       switch (data.type) {
         case "CLIENTS_UPDATE":
           store.dispatch(updateClients(data.payload));
@@ -43,7 +41,6 @@ function connect(store) {
           store.dispatch(updateSingleClient(data.payload));
           break;
         default:
-          console.debug('WS unknown type:', data.type);
           break;
       }
     } catch (error) {

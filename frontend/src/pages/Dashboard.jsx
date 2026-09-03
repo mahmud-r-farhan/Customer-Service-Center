@@ -27,8 +27,6 @@ const Dashboard = React.memo(() => {
 
   useEffect(() => {
     dispatch(fetchClients());
-    dispatch({ type: 'ws/connect' });
-    return () => dispatch({ type: 'ws/disconnect' });
   }, [dispatch]);
 
   const queuedClients = useMemo(() =>
