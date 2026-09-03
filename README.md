@@ -1,193 +1,186 @@
 # Customer Service Center
 
-The Customer Service Center is a web-based application designed to streamline customer queue management, token generation, and agent-assisted consultations. It enables customers to register with their name and phone number, receive a unique token, and wait for their turn. Agents can call customers for consultation, track ongoing services with agent assignment, and mark consultations as completed, with real-time updates across the system using WebSockets.
+[![CI Test Suite](https://github.com/mahmud-r-farhan/Customer-Service-Center/actions/workflows/test.yml/badge.svg)](https://github.com/mahmud-r-farhan/Customer-Service-Center/actions/workflows/test.yml)
 
-## Features
+The **Customer Service Center** is a full-stack, enterprise-ready web application designed to streamline customer queue management, token generation, real-time ticket tracking, and agent-assisted consultations.
 
--   **Customer Registration**: Customers provide their name and phone number to join the queue.
--   **Token Generation**: Automatically generates unique tokens for each registered customer.
--   **Serial Token Display**: Displays the current serving token, queue status, and assigned agent on a dedicated dashboard.
--   **Agent Call System**: Allows agents to call the next customer in the queue for consultation and assign themselves to the client.
--   **Consultation Management**: Tracks ongoing consultations, including agent assignment and consultation duration, and updates status upon completion.
--   **Recently Completed Cases**: Displays a list of recently completed consultations within the last 24 hours, including consultation duration and assigned agent.
--   **Excel Export**: Exports customer data from the last 24 hours, including consultation time and agent, to an Excel file for reporting.
--   **Real-time Updates**: Uses WebSockets to provide live updates on queue changes, agent assignments, and consultation statuses to all connected clients.
--   **User Authentication**: Secure login and registration for agents with JWT-based authentication.
--   **Status Indicators**: Visual indicators (red for idle, green for in-consultation) for clients in the queue.
+It provides an efficient workflow where customers register to receive a unique queue token, while agents call customers, manage consultations, track duration, export reports, and communicate in real-time across connected displays using WebSockets.
 
+![CS Center Banner](https://i.postimg.cc/CxqtD63L/unnamed-(3)-(1).jpg)
 
-![CS Center banner](https://i.postimg.cc/CxqtD63L/unnamed-(3)-(1).jpg)
+---
 
-## Technology Stack
+## 🌟 Key Features
 
-### Backend (cs-center)
+- **Guest Registration & Unique Token Generation**: Customers join the queue by providing their name and phone number to receive an auto-generated token (e.g. `A01`, `B05`).
+- **Real-Time Queue Dashboard**: Live serial queue display showcasing "Now Serving", "Next in Line", and "Recently Completed" sessions with WebSocket instant sync.
+- **Agent Call System & Session Management**: Agents start sessions, assign themselves to clients, track active durations, and mark consultations as completed.
+- **Data Export**: Export customer consultation history from the last 24 hours to `.xlsx` Excel spreadsheets for reporting and analytics.
+- **Secure Authentication**: JWT-based authentication stored in HttpOnly cookies with password hashing using `bcrypt`.
+- **Responsive UI/UX**: Built with modern React, Tailwind CSS, Framer Motion animations, dark mode support, and full-screen display mode for waiting room TVs.
+- **Docker Ready**: Pre-configured Docker Compose setup for backend, frontend, and MongoDB services.
 
--   **Node.js**: Runtime environment (CommonJS modules).
--   **Express.js**: Web framework for API development.
--   **MongoDB**: Database for storing customer and user data (via Mongoose ORM).
--   **WebSockets**: Real-time communication using the `ws` library.
--   **JWT & bcrypt**: Authentication and password hashing for secure user management.
--   **dotenv**: Environment variable management.
--   **CORS**: Cross-origin resource sharing for secure frontend-backend communication.
+---
 
-### Frontend (frontend)
+## 🛠️ Technology Stack
 
--   **React.js**: UI library (built with Vite for fast development).
--   **React Router DOM**: Client-side routing for navigation.
--   **Redux Toolkit**: State management for predictable state updates.
--   **Tailwind CSS**: Utility-first CSS framework for styling.
--   **Framer Motion**: Smooth animations for enhanced user experience.
--   **Sonner**: Toast notifications for user feedback.
--   **Axios**: HTTP client for API communication.
--   **xlsx**: Library for exporting data to Excel format.
--   **WebSockets**: Client-side WebSocket integration for real-time updates.
+### Backend
+- **Node.js**: CommonJS runtime environment.
+- **Express.js**: REST API framework with rate limiting and input validation.
+- **MongoDB & Mongoose**: Database and ORM with compound indexing for efficient token lookups.
+- **WebSockets (`ws`)**: Real-time bidirectional communication server.
+- **JWT & bcryptjs**: Authentication and secure password hashing.
 
-## Installation
+### Frontend
+- **React.js (Vite)**: Modern component-based UI library.
+- **Redux Toolkit**: Centralized state management with custom WebSocket middleware.
+- **Tailwind CSS & Framer Motion**: Responsive utility-first styling and smooth UI transitions.
+- **Sonner**: Toast feedback notifications.
+- **Axios & SheetJS (xlsx)**: HTTP client and Excel data export integration.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
+- **Node.js**: v18.x or higher
+- **npm**: v9.x or higher
+- **MongoDB**: Local MongoDB instance or MongoDB Atlas cloud URI
+- **Docker & Docker Compose** *(Optional for containerized setup)*
 
--   Node.js (v16 or higher)
--   MongoDB (local or cloud instance, e.g., MongoDB Atlas)
--   Git
+---
 
-### Backend Setup
+### 💻 Local Environment Setup
 
-1.  Clone the repository:
-    
-    ```bash
-    git clone https://github.com/mahmud-r-farhan/Customer-Service-Center
-    cd Customer-Service-Center
-    
-    ```
-    
-2.  Install backend dependencies:
-    
-    ```bash
-    npm install
-    
-    ```
-    
-3.  Create a `.env` file in the root directory with the following variables:
-    
-    ```env
-    PORT=5000
-    MONGODB_URI=<your_mongodb_connection_string>
-    JWT_SECRET=<your_secure_jwt_secret>
-    frontendURL=http://localhost:5173
-    
-    ```
-    
-4.  Start the backend server:
-    
-    ```bash
-    node server.js
-    
-    ```
-    
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/mahmud-r-farhan/Customer-Service-Center.git
+cd Customer-Service-Center
+```
 
-### Frontend Setup
+#### 2. Backend Setup
+1. Install backend dependencies:
+   ```bash
+   npm install
+   ```
+2. Create a `.env` file in the root directory:
+   ```env
+   PORT=5000
+   MONGODB_URI=mongodb://localhost:27017/customer_service
+   JWT_SECRET=your_super_secret_jwt_key
+   JWT_EXPIRES_IN=1h
+   FRONTEND_URL=http://localhost:5173
+   ```
+3. Start the backend server:
+   ```bash
+   node server.js
+   ```
 
-1.  Navigate to the frontend directory:
-    
-    ```bash
-    cd frontend
-    
-    ```
-    
-2.  Install frontend dependencies:
-    
-    ```bash
-    npm install
-    
-    ```
-    
-3.  Create a `.env` file in the `frontend` directory with the following variables:
-    
-    ```env
-    VITE_SERVER_URL=http://localhost:3000
-    VITE_WS_URL=ws://localhost:3000
-    
-    ```
-    
-4.  Run the development server:
-    
-    ```bash
-    npm run dev
-    
-    ```
-    
-5.  Open your browser and navigate to `http://localhost:5173`.
-    
+#### 3. Frontend Setup
+1. Navigate to the frontend folder and install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Create a `.env` file in the `frontend/` directory:
+   ```env
+   VITE_SERVER_URL=http://localhost:5000
+   VITE_WS_URL=ws://localhost:5000
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+4. Access the web app in your browser at `http://localhost:5173`.
 
-## API Endpoints
+---
 
-### Authentication
+### 🐳 Docker Setup
 
--   **POST /api/auth/register**: Register a new agent.
-    -   Body: `{ name: string, email: string, password: string }`
-    -   Response: `{ user: { id, name, email, role } }` and a secure HttpOnly cookie `token` is set for the session.
--   **POST /api/auth/login**: Authenticate an agent and return a JWT token.
-    -   Body: `{ email: string, password: string }`
-    -   Response: `{ user: { id, name, email, role } }` and a secure HttpOnly cookie `token` is set for the session.
--   **PUT /api/auth/settings**: Update agent profile settings.
-    -   Body: `{ name: string, email: string }`
-    -   Authentication: Server uses HttpOnly cookie `token` (the API also accepts `Authorization: Bearer <token>` as a fallback).
-    -   Response: `{ id, name, email, role }`
+Run the full application stack (MongoDB, Backend, and Frontend) using Docker Compose:
 
-### Client Management
+```bash
+docker-compose up --build
+```
 
--   **GET /api/health**: Health check endpoint returning system status and timestamp.
--   **GET /api/clients**: Retrieve all clients.
-    -   Headers: `Authorization: Bearer <token>`
-    -   Response: `[{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }, ...]`
--   **POST /api/clients**: Add a new client to the queue.
-    -   Body: `{ name: string, number: string, token: string }`
-    -   Headers: `Authorization: Bearer <token>`
-    -   Response: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
--   **PUT /api/clients/:id/status**: Update client status and agent assignment.
-    -   Body: `{ status: "upcoming" | "done", agent: string }`
-    -   Headers: `Authorization: Bearer <token>`
-    -   Response: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
+- **Frontend**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000`
+- **MongoDB**: `mongodb://localhost:27017`
 
-### WebSocket Events
+---
 
--   **CLIENTS_UPDATE**: Broadcasts the updated client list to all connected clients.
-    -   Payload: `[{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }, ...]`
--   **CLIENT_STATUS_UPDATED**: Notifies when a client's status or agent is updated.
-    -   Payload: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
--   **CLIENT_ASSIGNED**: Notifies when a client is assigned to an agent.
-    -   Payload: `{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }`
+## 📖 How to Use
 
-## Workflow
+1. **Agent Registration / Login**:
+   - Navigate to `/register` or `/login` to create an agent account.
+   - Sessions are authenticated securely using HttpOnly cookies.
 
-1.  **Customer Registration**: Customers provide their name and phone number via the "Add Guest" page.
-2.  **Token Generation**: A unique token is generated and assigned to the customer.
-3.  **Queue Display**: The "Serial" page displays the current serving token, upcoming queue, and assigned agent with real-time status indicators (red for idle, green for in-consultation).
-4.  **Agent Interaction**: Agents use the "Dashboard" to call customers, assign themselves to consultations, and manage ongoing sessions.
-5.  **Consultation Completion**: Agents mark consultations as done, updating the client's status and recording the consultation duration.
-6.  **Real-time Updates**: WebSockets ensure all clients see queue changes, agent assignments, and status updates instantly.
-7.  **Data Export**: Agents can export client data from the last 24 hours, including consultation time and agent, to Excel from the Dashboard.
+2. **Customer Registration & Token Printing**:
+   - Go to **Add Guest** (`/add-guest`).
+   - Enter the guest's name and phone number.
+   - Click **Add Guest** to generate a token (e.g., `A01`) and print a token card.
 
-## UI/UX Improvements
+3. **Waiting Room Display**:
+   - Open **Serial Queue** (`/serial`) on a waiting room monitor or screen.
+   - Click **Full Screen** mode for TV displays.
+   - Live updates notify waiting customers when their token is called.
 
--   **Agent Tracking**: Displays the assigned agent's name in the "Now Serving" section (Serial page) and "Upcoming Clients" section (Dashboard).
--   **Status Indicators**: Added red/green dots to indicate whether a client is idle (red) or in consultation (green) in both Serial and Dashboard pages.
--   **Consultation Duration**: Shows the duration of completed consultations in the "Recently Completed" section and Excel export.
--   **Settings Page Fix**: Added `useEffect` to sync form inputs with user data, preventing empty fields.
--   **Serial Page**: Limited "Recently Completed" section to show only clients completed in the last 24 hours, with consultation duration and agent details.
--   **Dashboard**: Added an "Export Last 24h" button to download client data, including consultation time and agent, as an Excel file.
--   **Visual Enhancements**:
-    -   Improved color contrast for better readability.
-    -   Added subtle animations with Framer Motion for smoother transitions.
-    -   Enhanced card designs with glassmorphism effects (backdrop-blur).
-    -   Consistent typography and spacing for a polished look.
--   **Responsive Design**: Optimized layouts for mobile, tablet, and desktop screens.
--   **Accessibility**: Added proper ARIA labels and keyboard navigation support.
+4. **Agent Dashboard & Session Handling**:
+   - Access **Dashboard** (`/dashboard`).
+   - View active queue statistics and click **Start Consult** to begin a session with the next client.
+   - Complete the session when finished; the system records total consultation time and agent details.
 
-## Installation and Local Setup
+5. **Report Export**:
+   - Click **Export Data** on the Dashboard to download an Excel sheet (`.xlsx`) containing customer records, consultation start times, durations, and assigned agents from the last 24 hours.
 
-**Please refer to the setup guideline.mmd for more details.**
+---
 
-or,
+## 📡 REST API Documentation
 
-#### _Visit_: [https://www.mermaidchart.com/app/projects/908082d1-8773-440e-b4e4-c78245f0677d/diagrams/f324a2d5-0458-438a-a8ff-2aaa1eea41f8/version/v0.1/edit](https://www.mermaidchart.com/app/projects/908082d1-8773-440e-b4e4-c78245f0677d/diagrams/f324a2d5-0458-438a-a8ff-2aaa1eea41f8/version/v0.1/edit)
+### Health Check
+- `GET /api/health` - Check backend server and API operational status.
+
+### Authentication (`/api/auth`)
+- `POST /api/auth/register` - Register a new service agent.
+- `POST /api/auth/login` - Login agent and set HttpOnly session cookie.
+- `POST /api/auth/logout` - Clear session cookie and log out agent.
+- `GET /api/auth/me` - Fetch currently authenticated user profile.
+- `PUT /api/auth/settings` - Update agent profile details (name/email).
+
+### Client & Queue Management (`/api/clients`)
+- `GET /api/clients` - Retrieve all client records.
+- `POST /api/clients` - Add a new guest to the active queue and issue a unique token.
+- `PUT /api/clients/:id/status` - Update client status (`queued`, `consulting`, `done`) and assigned agent.
+- `GET /api/clients/next-available-token` - Find the next unassigned active token in queue.
+- `GET /api/clients/recycle-tokens` - Clear completed customer tokens older than 24 hours.
+
+---
+
+## 🔄 Real-Time WebSockets
+
+The application uses WebSockets (`ws`) to sync queue states across all connected clients instantly.
+
+### WS Events Broadcasted:
+- `CLIENTS_UPDATE`: Full list update sent when clients are added, updated, or removed.
+- `CLIENT_STATUS_UPDATED`: Single client status change event (e.g. from `queued` to `consulting` or `done`).
+- `CLIENT_ASSIGNED`: Event emitted when an agent assigns themselves to a client.
+
+---
+
+## 🧪 Testing & CI/CD
+
+Backend integration tests are written using Node.js native test runner (`node:test`) and `supertest`.
+
+### Run Automated Tests Locally
+```bash
+npm test
+```
+
+### GitHub Actions CI
+Automated testing and build verification run on every push and pull request via `.github/workflows/test.yml`.
+
+---
+
+## 📄 License
+
+This project is open-source and released under the [ISC License](LICENSE).
