@@ -18,8 +18,15 @@ router.get("/", auth, async (req, res) => {
 router.post("/", auth, async (req, res) => {
   try {
     const { name, number } = req.body;
-    if (!name || !number) {
-      return res.status(400).json({ message: "Name and number are required" });
+    if (!name || !number || typeof name !== "string" || typeof number !== "string") {
+      return res.status(400).json({ message: "Valid name and number are required" });
+    }
+
+    const trimmedName = name.trim();
+    const trimmedNumber = number.trim();
+
+    if (!trimmedName || !trimmedNumber) {
+      return res.status(400).json({ message: "Name and number cannot be empty" });
     }
 
     // Generate unique token server-side
@@ -42,13 +49,12 @@ router.post("/", auth, async (req, res) => {
       if (!existingActive) {
         try {
           // Try to save with this token
-          const client = new Client({ name, number, token: candidateToken, status: "queued" });
+          const client = new Client({ name: trimmedName, number: trimmedNumber, token: candidateToken, status: "queued" });
           await client.save();
           token = candidateToken;
           break;
         } catch (saveError) {
           if (saveError.code === 11000) {
-            // Duplicate key error, token was taken by another process
             console.log(`Token ${candidateToken} taken concurrently, retrying...`);
           } else {
             throw saveError;
@@ -64,7 +70,7 @@ router.post("/", auth, async (req, res) => {
 
     // Broadcast update after successful save
     broadcast({ type: "CLIENTS_UPDATE", payload: await Client.find() });
-    res.status(201).json({ name, number, token });
+    res.status(201).json({ name: trimmedName, number: trimmedNumber, token });
   } catch (error) {
     console.error("Error adding client:", error);
     res.status(500).json({ message: error.message || "Failed to add client" });

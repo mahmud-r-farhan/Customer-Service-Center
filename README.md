@@ -136,6 +136,7 @@ The Customer Service Center is a web-based application designed to streamline cu
 
 ### Client Management
 
+-   **GET /api/health**: Health check endpoint returning system status and timestamp.
 -   **GET /api/clients**: Retrieve all clients.
     -   Headers: `Authorization: Bearer <token>`
     -   Response: `[{ _id, name, number, token, status, agent, consultationStart, createdAt, updatedAt }, ...]`
