@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { fetchClients } from "../redux/clientsSlice";
 import { FiMaximize, FiMinimize } from "react-icons/fi";
 import { calculateConsultationTime } from "../utils/clientUtils";
@@ -14,30 +14,28 @@ function Serial() {
   const dispatch = useDispatch();
   const clients = useSelector((state) => state.clients.list);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const now = new Date();
-  const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
   const queuedClients = useMemo(() =>
-    clients
+    [...clients]
       .filter((client) => client.status === "queued")
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
     [clients]
   );
 
   const consultingClients = useMemo(() =>
-    clients
+    [...clients]
       .filter((client) => client.status === "consulting")
       .sort((a, b) => new Date(a.consultationStart) - new Date(b.consultationStart)),
     [clients]
   );
 
-  const completedClients = useMemo(() =>
-    clients.filter(
+  const completedClients = useMemo(() => {
+    const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return clients.filter(
       (client) =>
         client.status === "done" && new Date(client.updatedAt) > last24h
-    ),
-    [clients]
-  );
+    );
+  }, [clients]);
 
   let displayCurrent = null;
   let displayUpcoming = [];

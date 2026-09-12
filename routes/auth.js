@@ -43,12 +43,13 @@ router.post(
         return res.status(400).json({ message: "Invalid input", errors: errors.array() });
       }
 
-      const { name, email, password } = req.body;
+      const { name, password } = req.body;
+      const email = req.body.email.trim().toLowerCase();
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ message: "User with this email already exists" });
       }
-      user = new User({ name, email, password });
+      user = new User({ name: name.trim(), email, password });
       await user.save();
 
       sendTokenCookie(res, user);
@@ -73,7 +74,8 @@ router.post(
         return res.status(400).json({ message: "Invalid input", errors: errors.array() });
       }
 
-      const { email, password } = req.body;
+      const { password } = req.body;
+      const email = req.body.email.trim().toLowerCase();
       const user = await User.findOne({ email });
       if (!user || !(await user.comparePassword(password))) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -122,11 +124,29 @@ router.put(
       const { name, newEmail } = req.body;
       const user = await User.findById(req.user.id);
       if (!user) return res.status(404).json({ message: "User not found" });
-      user.name = name || user.name;
-      user.email = newEmail || user.email;
+
+      if (name) user.name = name.trim();
+      if (newEmail) {
+        const normalizedEmail = newEmail.trim().toLowerCase();
+        if (normalizedEmail !== user.email) {
+          const existing = await User.findOne({ email: normalizedEmail });
+          if (existing) {
+            return res.status(400).json({ message: "Email is already in use" });
+          }
+          user.email = normalizedEmail;
+        }
+      }
+
       await user.save();
+
+      // Refresh the auth cookie so the token payload reflects any changes
+      sendTokenCookie(res, user);
+
       res.json({ id: user._id, name: user.name, email: user.email, role: user.role });
     } catch (error) {
+      if (error.code === 11000) {
+        return res.status(400).json({ message: "Email is already in use" });
+      }
       console.error("Settings update error:", error);
       res.status(500).json({ message: "Server error" });
     }

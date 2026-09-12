@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMinimize, FiMaximize, FiClock, FiCheckCircle, FiUser } from 'react-icons/fi';
 
@@ -25,7 +24,7 @@ const ConsultantArea = ({
             Consultant Area
           </h1>
           <p className="text-base text-gray-600 dark:text-gray-400">
-            Welcome, {agentName}! Let's consult today's clients.
+            Welcome, {agentName}! Let&apos;s consult today&apos;s clients.
           </p>
         </div>
         <motion.button

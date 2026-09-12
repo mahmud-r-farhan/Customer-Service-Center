@@ -85,7 +85,7 @@ cd Customer-Service-Center
 2. Create a `.env` file in the `frontend/` directory:
    ```env
    VITE_SERVER_URL=http://localhost:5000
-   VITE_WS_URL=ws://localhost:5000
+   VITE_WS_URL=ws://localhost:5000/ws
    ```
 3. Run the development server:
    ```bash
@@ -152,7 +152,8 @@ docker-compose up --build
 - `POST /api/clients` - Add a new guest to the active queue and issue a unique token.
 - `PUT /api/clients/:id/status` - Update client status (`queued`, `consulting`, `done`) and assigned agent.
 - `GET /api/clients/next-available-token` - Find the next unassigned active token in queue.
-- `GET /api/clients/recycle-tokens` - Clear completed customer tokens older than 24 hours.
+- `GET /api/clients/check-token/:token` - Check whether a given token is currently active.
+- `DELETE /api/clients/recycle-tokens` - Clear completed customer tokens older than 24 hours.
 
 ---
 

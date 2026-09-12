@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { addClient } from "../redux/clientsSlice";
 import { FiMaximize, FiMinimize, FiPrinter, FiPlus } from "react-icons/fi";
 import logo from "/app-logo.png";

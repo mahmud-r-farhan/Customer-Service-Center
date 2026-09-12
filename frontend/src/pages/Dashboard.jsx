@@ -1,23 +1,17 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { prepareAndExportLast24hClients } from '../utils/xlsx';
-import { useConsultant } from '../utils/consultant'; 
+import { useConsultant } from '../utils/consultant';
 import { FiDownloadCloud, FiUsers, FiClock, FiCheckCircle, FiCalendar } from 'react-icons/fi';
 import { fetchClients } from '../redux/clientsSlice';
 import Spinner from '../components/Spinner';
 import ConsultantArea from '../components/ConsultantArea';
 
-// Debounce utility 
-const debounce = (func, wait) => {
-  let timeout;
-  return (...args) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
+const EXPORT_DEBOUNCE_MS = 1000;
 
-const Dashboard = React.memo(() => {
+function Dashboard() {
   const dispatch = useDispatch();
   const { list: clients, loading } = useSelector((state) => state.clients);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -46,17 +40,32 @@ const Dashboard = React.memo(() => {
   const totalClients = clients.length;
   const activeClients = queuedClients.length;
 
-  // Refactored handleExport to use the extracted utility for better maintainability
-  const handleExport = useCallback(
-    debounce(() => {
-      prepareAndExportLast24hClients(clients); // Using extracted utility
-      // Note: toast.success is now handled in the component, but could be moved if needed
-    }, 1000),
-    [clients]
-  );
+  // Keep a stable ref to the latest clients list so the debounced export
+  // handler always exports fresh data without needing to be re-created
+  // (and thus reset its debounce timer) on every clients update.
+  const clientsRef = useRef(clients);
+  useEffect(() => {
+    clientsRef.current = clients;
+  }, [clients]);
+
+  const exportTimeoutRef = useRef(null);
+  useEffect(() => () => clearTimeout(exportTimeoutRef.current), []);
+
+  const handleExport = useCallback(() => {
+    clearTimeout(exportTimeoutRef.current);
+    exportTimeoutRef.current = setTimeout(async () => {
+      try {
+        const filename = await prepareAndExportLast24hClients(clientsRef.current);
+        toast.success(`Exported to ${filename}`);
+      } catch (error) {
+        console.error('Export error:', error);
+        toast.error(error.message || 'Failed to export data');
+      }
+    }, EXPORT_DEBOUNCE_MS);
+  }, []);
 
   const upcomingClients = useMemo(() =>
-    queuedClients.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
+    [...queuedClients].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
     [queuedClients]
   );
 
@@ -199,6 +208,6 @@ const Dashboard = React.memo(() => {
       </div>
     </div>
   );
-});
+}
 
 export default Dashboard;
