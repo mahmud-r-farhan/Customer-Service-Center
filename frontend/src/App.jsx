@@ -17,14 +17,24 @@ const Register = lazy(() => import("./pages/Register"));
 
 function App() {
   const dispatch = useDispatch();
-  const { loading, isAuthenticated } = useSelector((state) => state.auth);
+  const { authChecked, isAuthenticated } = useSelector((state) => state.auth);
+  const theme = useSelector((state) => state.settings.theme);
 
   useEffect(() => {
     // On app start, verify session via cookie-based auth
     dispatch(verifyCredentials());
   }, [dispatch]);
 
-  if (loading) return <Loading />;
+  // Keep the `dark` class on <html> in sync with the persisted theme.
+  // (index.html also applies this before React mounts to avoid a flash.)
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
+  // Only block on the initial session check, not on every subsequent
+  // auth-related request (e.g. saving settings), which previously caused
+  // the whole app (and its WebSocket connection) to unmount/remount.
+  if (!authChecked) return <Loading />;
 
   return (
     <Router>
@@ -35,8 +45,9 @@ function App() {
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <Suspense fallback={<Loading />}>
             <Routes>
-              <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
-              <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Register />} />
+              <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+              <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+              <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />} />
 
               <Route
                 path="/dashboard"
@@ -71,8 +82,8 @@ function App() {
                 }
               />
 
-              {/* Default redirect */}
-              <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
+              {/* Fallback for unknown routes */}
+              <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
             </Routes>
           </Suspense>
         </div>

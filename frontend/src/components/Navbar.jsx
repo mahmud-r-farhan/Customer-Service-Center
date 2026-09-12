@@ -13,7 +13,7 @@ function Navbar() {
   const [open, setOpen] = useState(false);
 
   const navItems = [
-    { path: "/", label: "Dashboard" },
+    { path: "/dashboard", label: "Dashboard" },
     { path: "/serial", label: "Serial" },
     { path: "/add-guest", label: "Add Guest" },
     { path: "/settings", label: "Settings" },

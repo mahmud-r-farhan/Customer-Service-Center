@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMaximize } from "react-icons/fi";
 
 function FullScreenWrapper({ isFullScreen, onToggleFullScreen, content, maxWidth = "max-w-7xl", backgroundClass = "bg-white" }) {
   return (

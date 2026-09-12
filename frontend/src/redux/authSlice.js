@@ -63,7 +63,13 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     isAuthenticated: false,
+    // `loading` tracks in-flight login/register/settings requests (for button
+    // spinners etc). `authChecked` tracks only the one-time initial session
+    // check on app boot, so the full-page loader isn't re-shown (and the app
+    // isn't unmounted/remounted, dropping the WebSocket connection) every
+    // time an unrelated auth request like `updateUserSettings` is pending.
     loading: false,
+    authChecked: false,
     error: null,
   },
   reducers: {
@@ -117,11 +123,13 @@ const authSlice = createSlice({
       })
       .addCase(verifyCredentials.fulfilled, (state, action) => {
         state.loading = false;
+        state.authChecked = true;
         state.isAuthenticated = true;
         state.user = action.payload.user;
       })
       .addCase(verifyCredentials.rejected, (state, action) => {
         state.loading = false;
+        state.authChecked = true;
         state.isAuthenticated = false;
         state.user = null;
         state.error = action.payload;

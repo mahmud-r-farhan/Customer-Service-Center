@@ -1,9 +1,12 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Client = require("../models/Client");
 const auth = require("../middleware/auth");
 const { broadcast } = require("../websocket");
 
 const router = express.Router();
+
+const VALID_STATUSES = ["queued", "consulting", "done"];
 
 router.get("/", auth, async (req, res) => {
   try {
@@ -31,11 +34,11 @@ router.post("/", auth, async (req, res) => {
 
     // Generate unique token server-side
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let token = null;
+    let savedClient = null;
     let attempts = 0;
     const maxAttempts = 2600; // 26*100
 
-    while (!token && attempts < maxAttempts) {
+    while (!savedClient && attempts < maxAttempts) {
       const letter = letters[Math.floor(Math.random() * letters.length)];
       const num = Math.floor(Math.random() * 100).toString().padStart(2, "0");
       const candidateToken = `${letter}${num}`;
@@ -51,7 +54,7 @@ router.post("/", auth, async (req, res) => {
           // Try to save with this token
           const client = new Client({ name: trimmedName, number: trimmedNumber, token: candidateToken, status: "queued" });
           await client.save();
-          token = candidateToken;
+          savedClient = client;
           break;
         } catch (saveError) {
           if (saveError.code === 11000) {
@@ -64,13 +67,16 @@ router.post("/", auth, async (req, res) => {
       attempts++;
     }
 
-    if (!token) {
+    if (!savedClient) {
       return res.status(500).json({ message: "No available tokens. Please try again later." });
     }
 
     // Broadcast update after successful save
     broadcast({ type: "CLIENTS_UPDATE", payload: await Client.find() });
-    res.status(201).json({ name: trimmedName, number: trimmedNumber, token });
+    // Return the full client document (including _id, status, createdAt, etc.)
+    // so the frontend can render it immediately without waiting on the
+    // WebSocket broadcast to fill in missing fields.
+    res.status(201).json(savedClient);
   } catch (error) {
     console.error("Error adding client:", error);
     res.status(500).json({ message: error.message || "Failed to add client" });
@@ -79,16 +85,26 @@ router.post("/", auth, async (req, res) => {
 
 router.put("/:id/status", auth, async (req, res) => {
   try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid client id" });
+    }
+
     const { status, agent } = req.body;
+    if (!status || !VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
     const updateData = { status };
     if (agent !== undefined) updateData.agent = agent;
     if (status === "consulting") {
       updateData.consultationStart = new Date();
     }
+
     const client = await Client.findByIdAndUpdate(
-      req.params.id,
+      id,
       updateData,
-      { new: true }
+      { new: true, runValidators: true }
     );
     if (!client) return res.status(404).json({ message: "Client not found" });
     broadcast({ type: "CLIENT_STATUS_UPDATED", payload: client });
@@ -147,14 +163,19 @@ router.get("/next-available-token", auth, async (req, res) => {
   }
 });
 
-router.get("/recycle-tokens", auth, async (req, res) => {
+// Use DELETE (not GET) since this endpoint mutates data by removing old records.
+router.delete("/recycle-tokens", auth, async (req, res) => {
   try {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const deleted = await Client.deleteMany({
       status: "done",
       updatedAt: { $lt: oneDayAgo }
     });
-    
+
+    if (deleted.deletedCount > 0) {
+      broadcast({ type: "CLIENTS_UPDATE", payload: await Client.find() });
+    }
+
     res.json({ message: "Tokens recycled successfully", deletedCount: deleted.deletedCount });
   } catch (error) {
     console.error("Error recycling tokens:", error);

@@ -3,7 +3,7 @@ const WebSocket = require("ws");
 let wss;
 
 function initWebSocket(server) {
-  wss = new WebSocket.Server({ server, perMessageDeflate: false });
+  wss = new WebSocket.Server({ server, path: "/ws", perMessageDeflate: false });
 
   wss.on("connection", (ws) => {
     ws.isAlive = true;
